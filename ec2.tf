@@ -1,9 +1,10 @@
+# Jenkins Master
 resource "aws_instance" "jenkins_master" {
-  ami                    = "ami-0f58b397bc5c1f2e8" # Amazon Linux 2 (update with latest for ap-south-1)
+  ami                    = "ami-0f58b397bc5c1f2e8" # Amazon Linux 2 for ap-south-1
   instance_type          = "t3.small"
-  subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.instance_sg.id]
-  key_name               = "jenkins-master"
+  subnet_id              = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.common.id, aws_security_group.jenkins.id]
+  key_name               = "jenkins-master" # Ensure this key exists in EC2
 
   tags = {
     Name = "Jenkins-master"
@@ -11,11 +12,12 @@ resource "aws_instance" "jenkins_master" {
   }
 }
 
+# Jenkins Slave
 resource "aws_instance" "jenkins_slave" {
   ami                    = "ami-0f58b397bc5c1f2e8"
   instance_type          = "t3.small"
-  subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.instance_sg.id]
+  subnet_id              = aws_subnet.public.id
+  vpc_security_group_ids = [aws_security_group.common.id, aws_security_group.jenkins.id]
   key_name               = "jenkins-slave"
 
   tags = {
@@ -24,7 +26,8 @@ resource "aws_instance" "jenkins_slave" {
   }
 }
 
-resource "aws_eip" "eip_master" {
+# Elastic IPs
+resource "aws_eip" "jenkins_master" {
   instance = aws_instance.jenkins_master.id
 
   tags = {
@@ -32,7 +35,7 @@ resource "aws_eip" "eip_master" {
   }
 }
 
-resource "aws_eip" "eip_slave" {
+resource "aws_eip" "jenkins_slave" {
   instance = aws_instance.jenkins_slave.id
 
   tags = {
